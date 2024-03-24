@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/JoshPattman/obtext"
 )
@@ -14,12 +15,13 @@ func main() {
 	}
 	defer f.Close()
 
+	startParseTime := time.Now()
 	ast, ok := obtext.ParseReader(f)
 	if !ok {
 		panic("failed to parse")
 	}
 
-	fmt.Println("Read Obtext file:")
+	fmt.Printf("Read Obtext file in: %v:\n", time.Since(startParseTime))
 	fmt.Println(obtext.FormatWithAnsiiColors(ast))
 
 	md := generateMarkdown(ast)
@@ -40,9 +42,9 @@ func generateMarkdown(t any) string {
 		case "document":
 			return generateMarkdown(t.Args[0])
 		case "h1":
-			return "# " + generateMarkdown(t.Args[0]) + "\n"
+			return "\n# " + generateMarkdown(t.Args[0]) + "\n"
 		case "h2":
-			return "## " + generateMarkdown(t.Args[0]) + "\n"
+			return "\n## " + generateMarkdown(t.Args[0]) + "\n"
 		case "p":
 			return "\n" + generateMarkdown(t.Args[0]) + "\n"
 		case "bold":
