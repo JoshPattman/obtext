@@ -71,12 +71,31 @@ func (o *ObjectArg) tryParse(data []byte, startByte, endByte byte) ([]byte, bool
 	}
 	data = data[1:]
 	elements := []Element{}
+	data = munchWhitespace(data)
 	for {
 		if len(data) == 0 {
 			return nil, false
 		}
 		if data[0] == endByte {
 			o.Elements = elements
+			// Delete full whitespace text off end and strip any trailing whitespace off last text
+			for {
+				if len(o.Elements) == 0 {
+					break
+				}
+				if t, ok := o.Elements[len(o.Elements)-1].(*Text); !ok {
+					break
+				} else {
+					if strings.Trim(t.Value, " \t\r\n") == "" {
+						// this is a whitespace text, remove it
+						o.Elements = o.Elements[:len(o.Elements)-1]
+					} else {
+						// strip trailing whitespace from this text block
+						t.Value = strings.TrimRight(t.Value, " \t\r\n")
+						break
+					}
+				}
+			}
 			return data[1:], true
 		}
 		oe := &Object{}
@@ -105,7 +124,7 @@ func (t *Text) tryParse(data []byte, endByte byte) ([]byte, bool) {
 			if i == 0 {
 				return nil, false
 			}
-			t.Value = strings.Trim(string(data[:i]), " \n\r\t")
+			t.Value = string(data[:i])
 			return data[i:], true
 		}
 		isEscaped = b == '\\'
