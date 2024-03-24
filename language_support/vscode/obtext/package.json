@@ -1,0 +1,31 @@
+{
+  "name": "obtext",
+  "displayName": "ObText",
+  "description": "Language support for the ObText mark-up language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "icon": "./icon.png",
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "obtext",
+      "aliases": ["obtext", "obtext"],
+      "extensions": [".obt"],
+      "configuration": "./language-configuration.json",
+      "icon": {
+        "light": "./icon.png",
+        "dark": "./icon.png"
+      
+      }
+    }],
+    "grammars": [{
+      "language": "obtext",
+      "scopeName": "source.obt",
+      "path": "./syntaxes/obtext.tmLanguage.json"
+    }]
+  }
+}
