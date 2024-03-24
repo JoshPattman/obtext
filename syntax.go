@@ -28,6 +28,21 @@ func (o *Object) NumArgs() int {
 	return len(o.Args)
 }
 
-func (oa *Arg) NumElements() int {
-	return len(oa.Elements)
+func (a *Arg) NumElements() int {
+	return len(a.Elements)
+}
+
+func (a *Arg) IsPureText() bool {
+	if len(a.Elements) == 1 {
+		_, ok := a.Elements[0].(*Text)
+		return ok
+	}
+	return false
+}
+
+func (a *Arg) PureText() string {
+	if a.IsPureText() {
+		return a.Elements[0].(*Text).Value
+	}
+	panic("arg is not just text, please check before calling JustText() by using IsJustText()")
 }
