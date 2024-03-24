@@ -1,32 +1,33 @@
 package obtext
 
 import (
+	"fmt"
 	"io"
 	"strings"
 )
 
-func ParseString(data string) (*Object, bool) {
+func ParseString(data string) (*Object, error) {
 	return ParseBytes([]byte(data))
 }
 
-func ParseReader(r io.Reader) (*Object, bool) {
+func ParseReader(r io.Reader) (*Object, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 	return ParseBytes(data)
 }
 
-func ParseBytes(data []byte) (*Object, bool) {
+func ParseBytes(data []byte) (*Object, error) {
 	o := &Object{}
 	rem, ok := o.tryParse(data)
 	if !ok {
-		return nil, false
+		return nil, fmt.Errorf("failed to parse object")
 	}
 	if len(rem) != 0 {
-		return nil, false
+		return nil, fmt.Errorf("failed to parse object due to remaining data: %s", string(rem))
 	}
-	return o, true
+	return o, nil
 }
 
 func (o *Object) tryParse(data []byte) ([]byte, bool) {
@@ -61,7 +62,7 @@ func (o *Object) tryParse(data []byte) ([]byte, bool) {
 	}
 	data = munchWhitespace(data)
 	o.Args = args
-	o.Name = name
+	o.Type = name
 	return data, true
 }
 

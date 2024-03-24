@@ -1,55 +1,90 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/JoshPattman/obtext"
 )
 
 func main() {
-	f, err := os.Open("test.obt")
+	// Specify the command line args and parse them
+	var inputFileName string
+	var outputFileName string
+	var prettyPrint bool
+
+	flag.StringVar(&inputFileName, "i", "", "The input file (.obt) to read")
+	flag.StringVar(&outputFileName, "o", "", "The output file (.md) to write")
+	flag.BoolVar(&prettyPrint, "p", false, "Pretty print the parsed obt ast to output")
+
+	flag.Parse()
+
+	// Ensure we have an input file and output file
+	if inputFileName == "" {
+		fmt.Println("No input file specified")
+		os.Exit(1)
+	}
+	if outputFileName == "" {
+		outputFileName = strings.TrimSuffix(inputFileName, ".obt") + ".md"
+	}
+
+	// Read the content of the input file
+	inputFile, err := os.Open(inputFileName)
 	if err != nil {
-		panic(err)
+		fmt.Println("Failed to open input file:", err)
+		os.Exit(1)
 	}
-	defer f.Close()
+	defer inputFile.Close()
 
-	startParseTime := time.Now()
-	ast, ok := obtext.ParseReader(f)
-	if !ok {
-		panic("failed to parse file")
+	// Try to parse the input file into an AST
+	ast, err := obtext.ParseReader(inputFile)
+	if err != nil {
+		fmt.Println("Failed to parse input file:", err)
+		os.Exit(1)
 	}
 
-	fmt.Printf("Read Obtext file in: %v:\n", time.Since(startParseTime))
-
+	// Validate the AST (check each object has the correct number of arguments)
 	err = obtext.Validate(ast, map[string]obtext.ArgConstraint{
-		"document": obtext.OneArg{},
-		"h1":       obtext.OneArg{},
-		"h2":       obtext.OneArg{},
-		"p":        obtext.OneArg{},
-		"bold":     obtext.OneArg{},
-		"image":    obtext.NArgs{N: 2}, // Image has {alt-text}{url}
+		"document": obtext.OneArg{},    // {content}
+		"h1":       obtext.OneArg{},    // {heading text}
+		"h2":       obtext.OneArg{},    // {heading text}
+		"p":        obtext.OneArg{},    // {text}
+		"bold":     obtext.OneArg{},    // {text}
+		"image":    obtext.NArgs{N: 2}, // {alt-text}{url}
 	})
 	if err != nil {
-		panic(err)
+		fmt.Println("Failed to validate input file:", err)
+		os.Exit(1)
 	}
 
-	fmt.Println(obtext.FormatWithAnsiiColors(ast))
+	// Pretty print the AST to stdout if requested
+	if prettyPrint {
+		fmt.Println(obtext.FormatWithAnsiiColors(ast))
+	}
 
-	md := generateMarkdown(ast)
-	f3, err := os.Create("test.md")
+	// Create the output file
+	outputFile, err := os.Create(outputFileName)
 	if err != nil {
-		panic(err)
+		fmt.Println("Failed to create output file:", err)
+		os.Exit(1)
 	}
-	defer f3.Close()
-	fmt.Fprint(f3, md)
+	defer outputFile.Close()
+
+	// Generate the markdown from the AST and write it to the output file
+	md := generateMarkdown(ast)
+	fmt.Fprint(outputFile, md)
+
+	fmt.Println("Successfully wrote markdown to", outputFileName)
 }
 
+// generateMarkdown generates markdown from the given AST
 func generateMarkdown(t any) string {
 	switch t := t.(type) {
 	case *obtext.Object:
-		switch t.Name {
+		// If this node is an object, choose what to do with it based on its type
+		switch t.Type {
 		case "document":
 			return generateMarkdown(t.Args[0])
 		case "h1":
@@ -66,12 +101,14 @@ func generateMarkdown(t any) string {
 			panic("unknown object type")
 		}
 	case *obtext.ObjectArg:
+		// If this node is an object argument, generate markdown for each element and append it together
 		out := ""
 		for _, e := range t.Elements {
 			out += generateMarkdown(e)
 		}
 		return out
 	case *obtext.Text:
+		// If this node is text, simply return the text value
 		return t.Value
 	default:
 		panic("unknown type")

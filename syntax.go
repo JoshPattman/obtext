@@ -9,7 +9,7 @@ func (Text) isElement()   {}
 
 // Object is a named collection of arguments: @object_name{arg1}{arg2}...
 type Object struct {
-	Name string
+	Type string
 	Args []*ObjectArg
 }
 

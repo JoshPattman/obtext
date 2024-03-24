@@ -17,7 +17,7 @@ func format(o *Object, indent string, withAnsiiColors bool) string {
 		}
 		return s
 	}
-	out := indent + conditionalColString("@"+o.Name, color.BlueString) + "\n"
+	out := indent + conditionalColString("@"+o.Type, color.BlueString) + "\n"
 	for _, a := range o.Args {
 		out += indent + conditionalColString("{\n", color.YellowString)
 		for _, e := range a.Elements {

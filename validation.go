@@ -6,24 +6,24 @@ type ArgConstraint interface {
 	Validate(args []*ObjectArg) error
 }
 
-func Validate(node any, objArgContraints map[string]ArgConstraint) error {
+func Validate(node any, allowedObjects map[string]ArgConstraint) error {
 	switch node := node.(type) {
 	case *Object:
-		if validator, ok := objArgContraints[node.Name]; !ok {
-			return fmt.Errorf("object %s is not allowed", node.Name)
+		if validator, ok := allowedObjects[node.Type]; !ok {
+			return fmt.Errorf("object '@%s' was not defined, did you add it to allowed objects?", node.Type)
 		} else {
 			if err := validator.Validate(node.Args); err != nil {
 				return err
 			}
 		}
 		for _, e := range node.Args {
-			if err := Validate(e, objArgContraints); err != nil {
+			if err := Validate(e, allowedObjects); err != nil {
 				return err
 			}
 		}
 	case *ObjectArg:
 		for _, e := range node.Elements {
-			if err := Validate(e, objArgContraints); err != nil {
+			if err := Validate(e, allowedObjects); err != nil {
 				return err
 			}
 		}
