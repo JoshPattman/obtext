@@ -24,11 +24,11 @@ func main() {
 	fmt.Printf("Read Obtext file in: %v:\n", time.Since(startParseTime))
 
 	err = obtext.Validate(ast, map[string]obtext.ArgConstraint{
-		"document": obtext.NoContraints{},
-		"h1":       obtext.NArgs{N: 1},
-		"h2":       obtext.NArgs{N: 1},
-		"p":        obtext.NArgs{N: 1},
-		"bold":     obtext.NArgs{N: 1},
+		"document": obtext.OneArg{},
+		"h1":       obtext.OneArg{},
+		"h2":       obtext.OneArg{},
+		"p":        obtext.OneArg{},
+		"bold":     obtext.OneArg{},
 	})
 	if err != nil {
 		panic(err)

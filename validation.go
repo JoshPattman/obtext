@@ -79,3 +79,12 @@ func (NoArgs) Validate(args []*ObjectArg) error {
 	}
 	return nil
 }
+
+type OneArg struct{}
+
+func (OneArg) Validate(args []*ObjectArg) error {
+	if len(args) != 1 {
+		return fmt.Errorf("expected one arg, got %d", len(args))
+	}
+	return nil
+}
