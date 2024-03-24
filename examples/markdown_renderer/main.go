@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -47,12 +48,14 @@ func main() {
 
 	// Validate the AST (check each object has the correct number of arguments)
 	err = obtext.Validate(ast, map[string]obtext.ArgConstraint{
-		"document": obtext.OneArg{},    // {content}
-		"h1":       obtext.OneArg{},    // {heading text}
-		"h2":       obtext.OneArg{},    // {heading text}
-		"p":        obtext.OneArg{},    // {text}
-		"bold":     obtext.OneArg{},    // {text}
-		"image":    obtext.NArgs{N: 2}, // {alt-text}{url}
+		"document": obtext.OneArg{},       // {content}
+		"h1":       obtext.OneArg{},       // {heading text}
+		"h2":       obtext.OneArg{},       // {heading text}
+		"ul":       obtext.NoContraints{}, // ul can have as many args as in the list
+		"p":        obtext.OneArg{},       // {text}
+		"bold":     obtext.OneArg{},       // {text}
+		"image":    obtext.NArgs{N: 2},    // {alt-text}{url}
+		"code":     obtext.OneArg{},
 	})
 	if err != nil {
 		fmt.Println("Failed to validate input file:", err)
@@ -97,6 +100,23 @@ func generateMarkdown(t any) string {
 			return "**" + generateMarkdown(t.Args[0]) + "**"
 		case "image":
 			return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.Args[0]), generateMarkdown(t.Args[1]))
+		case "ul":
+			out := "\n"
+			for _, e := range t.Args {
+				out += " - " + generateMarkdown(e) + "\n"
+			}
+			return out
+		case "code":
+			f, err := os.Open(generateMarkdown(t.Args[0]))
+			if err != nil {
+				return fmt.Sprintf("Failed to open file: %s", err)
+			}
+			defer f.Close()
+			data, err := io.ReadAll(f)
+			if err != nil {
+				return fmt.Sprintf("Failed to read file: %s", err)
+			}
+			return fmt.Sprintf("```\n%s\n```\n", data)
 		default:
 			panic("unknown object type")
 		}
