@@ -1,0 +1,10 @@
+## Syntax highlighting for Obtext files
+syntax obt "\.obt$"
+
+# Make all @objects purple
+color purple "@[a-zA-Z0-9_]+"
+# Remove the color from them if the have backslash before them
+color white "\\@[a-zA-Z0-9_]+"
+
+# Color brackets yellow
+color yellow "[{}]"

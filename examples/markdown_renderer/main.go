@@ -18,7 +18,7 @@ func main() {
 	startParseTime := time.Now()
 	ast, ok := obtext.ParseReader(f)
 	if !ok {
-		panic("failed to parse")
+		panic("failed to parse file")
 	}
 
 	fmt.Printf("Read Obtext file in: %v:\n", time.Since(startParseTime))
@@ -29,6 +29,7 @@ func main() {
 		"h2":       obtext.OneArg{},
 		"p":        obtext.OneArg{},
 		"bold":     obtext.OneArg{},
+		"image":    obtext.NArgs{N: 2}, // Image has {alt-text}{url}
 	})
 	if err != nil {
 		panic(err)
@@ -47,8 +48,6 @@ func main() {
 
 func generateMarkdown(t any) string {
 	switch t := t.(type) {
-	case *obtext.Text:
-		return t.Value
 	case *obtext.Object:
 		switch t.Name {
 		case "document":
@@ -61,6 +60,8 @@ func generateMarkdown(t any) string {
 			return "\n" + generateMarkdown(t.Args[0]) + "\n"
 		case "bold":
 			return "**" + generateMarkdown(t.Args[0]) + "**"
+		case "image":
+			return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.Args[0]), generateMarkdown(t.Args[1]))
 		default:
 			panic("unknown object type")
 		}
@@ -70,6 +71,8 @@ func generateMarkdown(t any) string {
 			out += generateMarkdown(e)
 		}
 		return out
+	case *obtext.Text:
+		return t.Value
 	default:
 		panic("unknown type")
 	}

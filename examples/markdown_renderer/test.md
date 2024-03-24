@@ -5,6 +5,8 @@
 
 Objective Text stands out for its simplicity. Its grammar comprises just three elements: objects, arguments, and text. This paragraph will have the leading and trailing whitespace removed, so we can put it on a new line for readability.
 
+![A visual representation of Objective Text's grammar](/path/to/diagram.png)
+
 ## A Robust Parser
 
 While it's true that the parser was developed during late-night coding sessions and is my first since a university project two years ago, it's designed to handle nested objects like **this**. That is an inline nested object so the whitespace around it is not removed.
