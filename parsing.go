@@ -43,6 +43,8 @@ func ParseBytes(data []byte) (*Object, error) {
 	// - trim whitespace from the front of any text elements that are the first child of an object arg
 	// - trim whitespace from the back of any text elements that are the last child of an object arg
 	stripWhitespaceFromEndChildren(obj)
+	// Finally, remove the escaping around any escaped special characters
+	cleanupEscapedSpecialChars(obj)
 	return obj, nil
 }
 
@@ -88,6 +90,23 @@ func stripWhitespaceFromEndChildren(node any) {
 		for _, el := range n.Elements {
 			stripWhitespaceFromEndChildren(el)
 		}
+	}
+}
+
+func cleanupEscapedSpecialChars(node any) {
+	switch n := node.(type) {
+	case *Object:
+		for _, arg := range n.Args {
+			cleanupEscapedSpecialChars(arg)
+		}
+	case *Arg:
+		for _, el := range n.Elements {
+			cleanupEscapedSpecialChars(el)
+		}
+	case *Text:
+		n.Value = strings.ReplaceAll(n.Value, "\\@", "@")
+		n.Value = strings.ReplaceAll(n.Value, "\\}", "}")
+		n.Value = strings.ReplaceAll(n.Value, "\\{", "{")
 	}
 }
 
