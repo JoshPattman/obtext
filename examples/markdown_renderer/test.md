@@ -7,4 +7,4 @@ Objective Text stands out for its simplicity. Its grammar comprises just three e
 
 ## A Robust Parser
 
-While it's true that the parser was developed during late-night coding sessions and is my first since a university project two years ago, it's designed to handle nested objects like **this**.
+While it's true that the parser was developed during late-night coding sessions and is my first since a university project two years ago, it's designed to handle nested objects like **this**. That is an inline nested object so the whitespace around it is not removed.
