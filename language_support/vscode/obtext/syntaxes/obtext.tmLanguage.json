@@ -11,7 +11,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.obtext",
-					"match": "@[a-zA-Z_][a-zA-Z0-9_]*"
+					"match": "(?<!\\\\)@[a-zA-Z_][a-zA-Z0-9_]*"
 				}
 			]
 		}
