@@ -6,10 +6,12 @@ import (
 	"strings"
 )
 
+// ParseString parses a string into an Object ast.
 func ParseString(data string) (*Object, error) {
 	return ParseBytes([]byte(data))
 }
 
+// ParseReader parses the content in an io.Reader into an Object ast.
 func ParseReader(r io.Reader) (*Object, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -18,6 +20,7 @@ func ParseReader(r io.Reader) (*Object, error) {
 	return ParseBytes(data)
 }
 
+// ParseBytes parses a byte slice into an Object ast.
 func ParseBytes(data []byte) (*Object, error) {
 	o := &Object{}
 	rem, ok := o.tryParse(data)
@@ -30,6 +33,7 @@ func ParseBytes(data []byte) (*Object, error) {
 	return o, nil
 }
 
+// tryParse attempts to parse the given data into an Object, returning false if not possible.
 func (o *Object) tryParse(data []byte) ([]byte, bool) {
 	startByte := byte('{')
 	endByte := byte('}')
@@ -50,7 +54,7 @@ func (o *Object) tryParse(data []byte) ([]byte, bool) {
 	}
 	args := []*ObjectArg{}
 	for {
-		data = munchWhitespace(data)
+		data = skipWhitespace(data)
 		oa := &ObjectArg{}
 		rem, ok := oa.tryParse(data, startByte, endByte)
 		if ok {
@@ -60,19 +64,20 @@ func (o *Object) tryParse(data []byte) ([]byte, bool) {
 			break
 		}
 	}
-	data = munchWhitespace(data)
+	data = skipWhitespace(data)
 	o.Args = args
 	o.Type = name
 	return data, true
 }
 
+// tryParse attempts to parse the given data into an ObjectArg, returning false if not possible.
 func (o *ObjectArg) tryParse(data []byte, startByte, endByte byte) ([]byte, bool) {
 	if len(data) == 0 || data[0] != startByte {
 		return nil, false
 	}
 	data = data[1:]
 	elements := []Element{}
-	data = munchWhitespace(data)
+	data = skipWhitespace(data)
 	for {
 		if len(data) == 0 {
 			return nil, false
@@ -117,6 +122,7 @@ func (o *ObjectArg) tryParse(data []byte, startByte, endByte byte) ([]byte, bool
 	}
 }
 
+// tryParse attempts to parse the given data into a Text, returning false if not possible.
 func (t *Text) tryParse(data []byte, endByte byte) ([]byte, bool) {
 	// Basically just eat letters till we hit either @ or endByte
 	isEscaped := false
@@ -133,11 +139,13 @@ func (t *Text) tryParse(data []byte, endByte byte) ([]byte, bool) {
 	return nil, false
 }
 
+// isIdentChar returns true if the given byte is a valid identifier character.
 func isIdentChar(b byte) bool {
 	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || b == '_' || (b >= '0' && b <= '9')
 }
 
-func munchWhitespace(data []byte) []byte {
+// skipWhitespace removes leading whitespace from the given byte slice.
+func skipWhitespace(data []byte) []byte {
 	for i, b := range data {
 		if b != ' ' && b != '\n' && b != '\r' && b != '\t' {
 			return data[i:]

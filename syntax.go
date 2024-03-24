@@ -1,5 +1,6 @@
 package obtext
 
+// Element is either an Object or Text.
 type Element interface {
 	isElement()
 }

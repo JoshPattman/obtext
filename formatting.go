@@ -2,14 +2,17 @@ package obtext
 
 import "github.com/fatih/color"
 
+// Format returns a string representation of the object with nice indentation.
 func Format(o *Object) string {
 	return format(o, "", false)
 }
 
+// FormatWithAnsiiColors returns a string representation of the object with nice indentation and ansii colors.
 func FormatWithAnsiiColors(o *Object) string {
 	return format(o, "", true)
 }
 
+// format is a recursive function that formats the object with indentation and optionally colors.
 func format(o *Object, indent string, withAnsiiColors bool) string {
 	conditionalColString := func(s string, f func(string, ...any) string) string {
 		if withAnsiiColors {
