@@ -28,7 +28,7 @@ func format(o *Object, indent string, withAnsiiColors bool) string {
 			case *Object:
 				out += format(e, indent+"  ", withAnsiiColors)
 			case *Text:
-				out += indent + "  " + e.Value + "\n"
+				out += indent + "  |" + e.Value + "|\n"
 			}
 		}
 		out += indent + conditionalColString("}\n", color.YellowString)

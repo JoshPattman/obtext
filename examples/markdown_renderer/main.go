@@ -100,7 +100,7 @@ func generateMarkdown(t any) string {
 		default:
 			panic("unknown object type")
 		}
-	case *obtext.ObjectArg:
+	case *obtext.Arg:
 		// If this node is an object argument, generate markdown for each element and append it together
 		out := ""
 		for _, e := range t.Elements {

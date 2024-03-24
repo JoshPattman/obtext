@@ -5,7 +5,7 @@ import "fmt"
 // ArgConstraint is an interface that can be implemented to validate the arguments of an object.
 type ArgConstraint interface {
 	// Validate checks if the given arguments are valid according to this constraint, and returns an error explaining why if not.
-	Validate(args []*ObjectArg) error
+	Validate(args []*Arg) error
 }
 
 // Validate looks through the ast and checks:
@@ -29,7 +29,7 @@ func Validate(node any, allowedObjects map[string]ArgConstraint) error {
 				return err
 			}
 		}
-	case *ObjectArg:
+	case *Arg:
 		for _, e := range node.Elements {
 			if err := Validate(e, allowedObjects); err != nil {
 				return err
@@ -43,14 +43,14 @@ func Validate(node any, allowedObjects map[string]ArgConstraint) error {
 // NoContraints is a constraint that allows any number of arguments with any content in them.
 type NoContraints struct{}
 
-func (NoContraints) Validate(args []*ObjectArg) error {
+func (NoContraints) Validate(args []*Arg) error {
 	return nil
 }
 
 // NoArgs is a constraint that requires no arguments.
 type NoArgs struct{}
 
-func (NoArgs) Validate(args []*ObjectArg) error {
+func (NoArgs) Validate(args []*Arg) error {
 	if len(args) > 0 {
 		return fmt.Errorf("expected no args, got %d", len(args))
 	}
@@ -60,7 +60,7 @@ func (NoArgs) Validate(args []*ObjectArg) error {
 // OneArg is a constraint that requires exactly one argument.
 type OneArg struct{}
 
-func (OneArg) Validate(args []*ObjectArg) error {
+func (OneArg) Validate(args []*Arg) error {
 	if len(args) != 1 {
 		return fmt.Errorf("expected one arg, got %d", len(args))
 	}
@@ -72,7 +72,7 @@ type NArgs struct {
 	N int
 }
 
-func (n NArgs) Validate(args []*ObjectArg) error {
+func (n NArgs) Validate(args []*Arg) error {
 	if len(args) != n.N {
 		return fmt.Errorf("expected %d args, got %d", n.N, len(args))
 	}
@@ -84,7 +84,7 @@ type AtLeastNArgs struct {
 	N int
 }
 
-func (n AtLeastNArgs) Validate(args []*ObjectArg) error {
+func (n AtLeastNArgs) Validate(args []*Arg) error {
 	if len(args) < n.N {
 		return fmt.Errorf("expected at least %d args, got %d", n.N, len(args))
 	}
@@ -96,7 +96,7 @@ type AtMostNArgs struct {
 	N int
 }
 
-func (n AtMostNArgs) Validate(args []*ObjectArg) error {
+func (n AtMostNArgs) Validate(args []*Arg) error {
 	if len(args) > n.N {
 		return fmt.Errorf("expected at most %d args, got %d", n.N, len(args))
 	}

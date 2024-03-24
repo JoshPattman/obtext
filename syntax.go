@@ -11,11 +11,11 @@ func (Text) isElement()   {}
 // Object is a named collection of arguments: @object_name{arg1}{arg2}...
 type Object struct {
 	Type string
-	Args []*ObjectArg
+	Args []*Arg
 }
 
-// ObjectArg is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
-type ObjectArg struct {
+// Arg is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
+type Arg struct {
 	Elements []Element
 }
 
@@ -28,6 +28,6 @@ func (o *Object) NumArgs() int {
 	return len(o.Args)
 }
 
-func (oa *ObjectArg) NumElements() int {
+func (oa *Arg) NumElements() int {
 	return len(oa.Elements)
 }
