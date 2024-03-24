@@ -1,0 +1,11 @@
+@document{
+    @h1{Header}
+    @h2{Subheader}
+    @p{
+        This is a paragraph.
+    }
+    @h2{
+        Subheader with whitespace stripped
+    }
+    @p{paragraph 2 with a @bold{bold} item.}
+}
