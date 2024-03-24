@@ -1,4 +1,4 @@
-# Objective Text - A Streamlined Markup Language
+# Objective Text - A Dead Simple Markup Language
 Objective Text is a minimalist markup language designed for blog writing, designed by blending `html` and `latex`. Its key feature is its simplicity, with a grammar that consists of only three elements:
 
 - Objects: Denoted by `@object_name`
