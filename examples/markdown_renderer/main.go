@@ -22,6 +22,18 @@ func main() {
 	}
 
 	fmt.Printf("Read Obtext file in: %v:\n", time.Since(startParseTime))
+
+	err = obtext.Validate(ast, map[string]obtext.ArgConstraint{
+		"document": obtext.NoContraints{},
+		"h1":       obtext.NArgs{N: 1},
+		"h2":       obtext.NArgs{N: 1},
+		"p":        obtext.NArgs{N: 1},
+		"bold":     obtext.NArgs{N: 1},
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(obtext.FormatWithAnsiiColors(ast))
 
 	md := generateMarkdown(ast)
