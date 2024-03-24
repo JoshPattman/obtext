@@ -47,17 +47,18 @@ func main() {
 	}
 
 	// Validate the AST (check each object has the correct number of arguments)
-	err = obtext.Validate(ast, map[string]obtext.ArgConstraint{
-		"document": obtext.OneArg{},       // {content}
-		"h1":       obtext.OneArg{},       // {heading text}
-		"h2":       obtext.OneArg{},       // {heading text}
-		"ul":       obtext.NoContraints{}, // ul can have as many args as in the list
-		"p":        obtext.OneArg{},       // {text}
-		"bold":     obtext.OneArg{},       // {text}
-		"image":    obtext.NArgs{N: 2},    // {alt-text}{url}
-		"code":     obtext.OneArg{},
-	})
-	if err != nil {
+	allowedObjects := []obtext.ObjectTmpl{
+		&obtext.BasicObjectTmpl{Type: "document", NumArgs: 1},
+		&obtext.BasicObjectTmpl{Type: "h1", NumArgs: 1},
+		&obtext.BasicObjectTmpl{Type: "h2", NumArgs: 1},
+		&obtext.BasicObjectTmpl{Type: "ul", NumArgs: 0, AllowExtra: true},
+		&obtext.BasicObjectTmpl{Type: "p", NumArgs: 1},
+		&obtext.BasicObjectTmpl{Type: "bold", NumArgs: 1},
+		&obtext.CastObjectTmpl{Type: "image", CastTos: []string{"", "string"}},
+		&obtext.CastObjectTmpl{Type: "code", CastTos: []string{"string"}},
+	}
+
+	if err := obtext.Preprocess(ast, allowedObjects); err != nil {
 		fmt.Println("Failed to validate input file:", err)
 		os.Exit(1)
 	}
@@ -99,7 +100,7 @@ func generateMarkdown(t any) string {
 		case "bold":
 			return "**" + generateMarkdown(t.Args[0]) + "**"
 		case "image":
-			return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.Args[0]), generateMarkdown(t.Args[1]))
+			return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.Args[0]), t.Args[1].CastValue.(string))
 		case "ul":
 			out := "\n"
 			for _, e := range t.Args {
@@ -107,7 +108,7 @@ func generateMarkdown(t any) string {
 			}
 			return out
 		case "code":
-			f, err := os.Open(generateMarkdown(t.Args[0]))
+			f, err := os.Open(t.Args[0].CastValue.(string))
 			if err != nil {
 				return fmt.Sprintf("Failed to open file: %s", err)
 			}

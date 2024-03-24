@@ -1,37 +1,34 @@
 package obtext
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-// ArgConstraint is an interface that can be implemented to validate the arguments of an object.
-type ArgConstraint interface {
-	// Validate checks if the given arguments are valid according to this constraint, and returns an error explaining why if not.
-	Validate(args []*Arg) error
-}
-
-// Validate looks through the ast and checks:
-//
-//   - All objects in the ast are defined in allowedObjects
-//   - All objects have valid arguments according to the constraints in allowedObjects
-//
-// You can also extend the behaviour by adding custom constraints, as ArgConstraint is an interface.
-func Validate(node any, allowedObjects map[string]ArgConstraint) error {
+func Preprocess(node any, allowedObjects []ObjectTmpl) error {
+	allowedObjectsMap := make(map[string]ObjectTmpl)
+	for _, o := range allowedObjects {
+		allowedObjectsMap[o.ObjectType()] = o
+	}
 	switch node := node.(type) {
 	case *Object:
-		if validator, ok := allowedObjects[node.Type]; !ok {
-			return fmt.Errorf("object '@%s' was not defined, did you add it to allowed objects?", node.Type)
-		} else {
-			if err := validator.Validate(node.Args); err != nil {
+		// Ensure we always do all children first, incase the preprocessing of this relies on the children.
+		for _, e := range node.Args {
+			if err := Preprocess(e, allowedObjects); err != nil {
 				return err
 			}
 		}
-		for _, e := range node.Args {
-			if err := Validate(e, allowedObjects); err != nil {
+		// Now validate this object
+		if tmpl, ok := allowedObjectsMap[node.Type]; !ok {
+			return fmt.Errorf("object '%s' was not defined", node.Type)
+		} else {
+			if err := tmpl.PreprocessArgs(node.Args); err != nil {
 				return err
 			}
 		}
 	case *Arg:
 		for _, e := range node.Elements {
-			if err := Validate(e, allowedObjects); err != nil {
+			if err := Preprocess(e, allowedObjects); err != nil {
 				return err
 			}
 		}
@@ -40,65 +37,92 @@ func Validate(node any, allowedObjects map[string]ArgConstraint) error {
 	return nil
 }
 
-// NoContraints is a constraint that allows any number of arguments with any content in them.
-type NoContraints struct{}
-
-func (NoContraints) Validate(args []*Arg) error {
-	return nil
+// Object Template defines how an object should be structured, and contains logic for preprocessing the arguments.
+type ObjectTmpl interface {
+	ObjectType() string
+	PreprocessArgs([]*Arg) error
 }
 
-// NoArgs is a constraint that requires no arguments.
-type NoArgs struct{}
+type BasicObjectTmpl struct {
+	Type       string
+	NumArgs    int
+	AllowExtra bool
+}
 
-func (NoArgs) Validate(args []*Arg) error {
-	if len(args) > 0 {
-		return fmt.Errorf("expected no args, got %d", len(args))
+func (t *BasicObjectTmpl) ObjectType() string {
+	return t.Type
+}
+
+func (t *BasicObjectTmpl) PreprocessArgs(args []*Arg) error {
+	if t.AllowExtra {
+		if len(args) < t.NumArgs {
+			return fmt.Errorf("expected at least %d args, got %d", t.NumArgs, len(args))
+		}
+	} else {
+		if len(args) != t.NumArgs {
+			return fmt.Errorf("expected %d args, got %d", t.NumArgs, len(args))
+		}
 	}
 	return nil
 }
 
-// OneArg is a constraint that requires exactly one argument.
-type OneArg struct{}
+type CastObjectTmpl struct {
+	Type       string
+	CastTos    []string
+	AllowExtra bool
+	CastExtra  string
+}
 
-func (OneArg) Validate(args []*Arg) error {
-	if len(args) != 1 {
-		return fmt.Errorf("expected one arg, got %d", len(args))
+func (t *CastObjectTmpl) ObjectType() string {
+	return t.Type
+}
+
+func (t *CastObjectTmpl) PreprocessArgs(args []*Arg) error {
+	// Check corrent number of args
+	if t.AllowExtra {
+		if len(args) < len(t.CastTos) {
+			return fmt.Errorf("expected at least %d args, got %d", len(t.CastTos), len(args))
+		}
+	} else {
+		if len(args) != len(t.CastTos) {
+			return fmt.Errorf("expected %d args, got %d", len(t.CastTos), len(args))
+		}
 	}
-	return nil
-}
-
-// NArgs is a constraint that requires exactly N arguments.
-type NArgs struct {
-	N int
-}
-
-func (n NArgs) Validate(args []*Arg) error {
-	if len(args) != n.N {
-		return fmt.Errorf("expected %d args, got %d", n.N, len(args))
-	}
-	return nil
-}
-
-// AtLeastNArgs is a constraint that requires at least N arguments.
-type AtLeastNArgs struct {
-	N int
-}
-
-func (n AtLeastNArgs) Validate(args []*Arg) error {
-	if len(args) < n.N {
-		return fmt.Errorf("expected at least %d args, got %d", n.N, len(args))
-	}
-	return nil
-}
-
-// AtMostNArgs is a constraint that requires at most N arguments.
-type AtMostNArgs struct {
-	N int
-}
-
-func (n AtMostNArgs) Validate(args []*Arg) error {
-	if len(args) > n.N {
-		return fmt.Errorf("expected at most %d args, got %d", n.N, len(args))
+	for i := range args {
+		var castTo string
+		if i < len(t.CastTos) {
+			castTo = t.CastTos[i]
+		} else {
+			castTo = t.CastExtra
+		}
+		if castTo == "" {
+			continue
+		}
+		if len(args[i].Elements) != 1 {
+			return fmt.Errorf("expected arg %d to be a single element, got %d elements", i, len(args[i].Elements))
+		}
+		if txt, ok := args[i].Elements[0].(*Text); !ok {
+			return fmt.Errorf("expected arg %d to be text, got %T", i, args[i].Elements[0])
+		} else {
+			switch castTo {
+			case "int":
+				if casted, err := strconv.Atoi(txt.Value); err != nil {
+					return fmt.Errorf("failed to cast arg %d to int: %s", i, err)
+				} else {
+					args[i].CastValue = casted
+				}
+			case "float":
+				if casted, err := strconv.ParseFloat(txt.Value, 64); err != nil {
+					return fmt.Errorf("failed to cast arg %d to float: %s", i, err)
+				} else {
+					args[i].CastValue = casted
+				}
+			case "string":
+				args[i].CastValue = txt.Value
+			default:
+				return fmt.Errorf("unknown cast type '%s'", castTo)
+			}
+		}
 	}
 	return nil
 }

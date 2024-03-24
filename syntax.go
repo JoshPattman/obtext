@@ -17,6 +17,8 @@ type Object struct {
 // Arg is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
 type Arg struct {
 	Elements []Element
+	// This may be nil, however during validation it is possible that this will get populated according to the validation constraints.
+	CastValue any
 }
 
 // Text is a simple text element that contains just raw text.
@@ -30,19 +32,4 @@ func (o *Object) NumArgs() int {
 
 func (a *Arg) NumElements() int {
 	return len(a.Elements)
-}
-
-func (a *Arg) IsPureText() bool {
-	if len(a.Elements) == 1 {
-		_, ok := a.Elements[0].(*Text)
-		return ok
-	}
-	return false
-}
-
-func (a *Arg) PureText() string {
-	if a.IsPureText() {
-		return a.Elements[0].(*Text).Value
-	}
-	panic("arg is not just text, please check before calling JustText() by using IsJustText()")
 }
