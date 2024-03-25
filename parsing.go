@@ -14,10 +14,12 @@ var argRegexpEnd = regexp.MustCompile("}")
 
 var objRegexpName = regexp.MustCompile("@([a-zA-Z0-9_]+)")
 
+// ParseString is a convenience function that calls ParseBytes after converting the string to a byte slice
 func ParseString(data string) (*Object, error) {
 	return ParseBytes([]byte(data))
 }
 
+// ParseReader is a convenience function that reads all data from the reader and then calls ParseBytes
 func ParseReader(data io.Reader) (*Object, error) {
 	buf, err := io.ReadAll(data)
 	if err != nil {
@@ -26,6 +28,9 @@ func ParseReader(data io.Reader) (*Object, error) {
 	return ParseBytes(buf)
 }
 
+// ParseBytes parses the given byte slice and returns the AST, or an error if the data is invalid.
+// This AST is not checked for semantics, only syntax.
+// This means that any object types are allowed, with any number of args, and any types in the args.
 func ParseBytes(data []byte) (*Object, error) {
 	// Initially, trim all whitespace from front and end (some editors add a newline at the end)
 	data = []byte(strings.Trim(string(data), " \r\n\t"))

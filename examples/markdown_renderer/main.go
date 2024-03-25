@@ -48,17 +48,17 @@ func main() {
 
 	// Validate the AST (check each object has the correct number of arguments)
 	allowedObjects := []obtext.ObjectTmpl{
-		&obtext.BasicObjectTmpl{Type: "document", NumArgs: 1},
-		&obtext.BasicObjectTmpl{Type: "h1", NumArgs: 1},
-		&obtext.BasicObjectTmpl{Type: "h2", NumArgs: 1},
-		&obtext.BasicObjectTmpl{Type: "ul", NumArgs: 0, AllowExtra: true},
-		&obtext.BasicObjectTmpl{Type: "p", NumArgs: 1},
-		&obtext.BasicObjectTmpl{Type: "bold", NumArgs: 1},
-		&obtext.CastObjectTmpl{Type: "image", CastTos: []string{"", "string"}},
-		&obtext.CastObjectTmpl{Type: "code", CastTos: []string{"string"}},
+		&obtext.BasicTmpl{Type: "document", NumArgs: 1},
+		&obtext.BasicTmpl{Type: "h1", NumArgs: 1},
+		&obtext.BasicTmpl{Type: "h2", NumArgs: 1},
+		&obtext.BasicTmpl{Type: "ul", AllowExtra: true},
+		&obtext.BasicTmpl{Type: "p", NumArgs: 1},
+		&obtext.BasicTmpl{Type: "bold", NumArgs: 1},
+		&obtext.BasicTmpl{Type: "image", CastArgsTo: []string{"", "string"}},
+		&obtext.BasicTmpl{Type: "code", CastArgsTo: []string{"string"}},
 	}
 
-	if err := obtext.Preprocess(ast, allowedObjects); err != nil {
+	if err := obtext.ProcessSemantics(ast, allowedObjects); err != nil {
 		fmt.Println("Failed to validate input file:", err)
 		os.Exit(1)
 	}
