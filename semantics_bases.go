@@ -1,6 +1,8 @@
 package obtext
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // SingleArgSemNode is a semantic node that has exactly 1 child, which is a content block.
 // It only partially implements the SemNode interface, as it does not implement SyntaxType.
@@ -15,6 +17,11 @@ func (d *SingleArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	}
 	d.Content = args[0]
 	return nil
+}
+
+// Children implements the SemNode interface.
+func (d *SingleArgSemNode) Children() []SemNode {
+	return []SemNode{d.Content}
 }
 
 // CaptionedSemNode is a semantic node that has exactly 2 children, the first of which is a content block representing a caption,
@@ -40,6 +47,11 @@ func (c *CaptionedLinkSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	c.Link = text.Text
 	c.CaptionContent = args[0]
 	return nil
+}
+
+// Children implements the SemNode interface.
+func (c *CaptionedLinkSemNode) Children() []SemNode {
+	return []SemNode{c.CaptionContent}
 }
 
 // DualStringSemNode is a semantic node that has exactly 2 children, both of which are strings.
@@ -73,6 +85,11 @@ func (d *DualStringSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	return nil
 }
 
+// Children implements the SemNode interface.
+func (d *DualStringSemNode) Children() []SemNode {
+	return []SemNode{}
+}
+
 // ListArgSemNode is a semantic node that has a list of children, each of which is a content block.
 // It only partially implements the SemNode interface, as it does not implement SyntaxType.
 type ListArgSemNode struct {
@@ -83,4 +100,13 @@ type ListArgSemNode struct {
 func (l *ListArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	l.Contents = args
 	return nil
+}
+
+// Children implements the SemNode interface.
+func (l *ListArgSemNode) Children() []SemNode {
+	res := make([]SemNode, len(l.Contents))
+	for i, c := range l.Contents {
+		res[i] = c
+	}
+	return res
 }
