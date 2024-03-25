@@ -7,8 +7,8 @@ import (
 
 // ProcessSemantics takes an AST and a list of ObjectTmpls, and checks that the AST is semantically correct, according to the given object templates.
 // Any objects that are not given, or who fail the template check given by their template, will return an error.
-func ProcessSemantics(node any, templates []ObjectTmpl) error {
-	allowedObjects := make(map[string]ObjectTmpl)
+func ProcessSemantics(node any, templates []ObjectSemantics) error {
+	allowedObjects := make(map[string]ObjectSemantics)
 	for _, o := range templates {
 		allowedObjects[o.ObjectType()] = o
 	}
@@ -39,18 +39,18 @@ func ProcessSemantics(node any, templates []ObjectTmpl) error {
 	return nil
 }
 
-// ObjectTmpl is an iterface, which serves two purposes:
+// ObjectSemantics is an iterface, which serves two purposes:
 //
 //   - It tells the preprocessor that the type of object @Type is allowed
 //   - It provides the preprocessor with a function to process the arguments of the object (for example, check there are the correct number, check that arg1 is just a text block that can be cast to an int)
-type ObjectTmpl interface {
+type ObjectSemantics interface {
 	ObjectType() string
 	ProcessArgSemantics([]*Arg) error
 }
 
-// BasicTmpl is a simple implementation of ObjectTmpl, which allows you to specify the number of arguments, the types of the arguments, and how to cast them.
+// BasicSemantics is a simple implementation of ObjectTmpl, which allows you to specify the number of arguments, the types of the arguments, and how to cast them.
 // It also allows extra args, but these can only be cast to one type.
-type BasicTmpl struct {
+type BasicSemantics struct {
 	Type        string
 	NumArgs     int
 	CastArgsTo  []string
@@ -59,11 +59,11 @@ type BasicTmpl struct {
 	Caster      Caster
 }
 
-func (t *BasicTmpl) ObjectType() string {
+func (t *BasicSemantics) ObjectType() string {
 	return t.Type
 }
 
-func (t *BasicTmpl) ProcessArgSemantics(args []*Arg) error {
+func (t *BasicSemantics) ProcessArgSemantics(args []*Arg) error {
 	// If we have a set of casting rules, then override the number of args (means you don't have to specify it)
 	if t.CastArgsTo != nil {
 		t.NumArgs = len(t.CastArgsTo)
@@ -101,7 +101,7 @@ func (t *BasicTmpl) ProcessArgSemantics(args []*Arg) error {
 			return fmt.Errorf("expected arg %d of object '%s' to be a single element, got %d elements", i, t.ObjectType(), len(args[i].Elements))
 		}
 		if txt, ok := args[i].Elements[0].(*Text); !ok {
-			return fmt.Errorf("expected arg %d to be text, got %T", i, args[i].Elements[0])
+			return fmt.Errorf("expected arg %d of object '%s' to be text, got %T", i, t.ObjectType(), args[i].Elements[0])
 		} else {
 			v, err := t.Caster.CastTo(txt.Value, castTo)
 			if err != nil {

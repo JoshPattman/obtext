@@ -46,19 +46,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Validate the AST (check each object has the correct number of arguments)
-	allowedObjects := []obtext.ObjectTmpl{
-		&obtext.BasicTmpl{Type: "document", NumArgs: 1},
-		&obtext.BasicTmpl{Type: "h1", NumArgs: 1},
-		&obtext.BasicTmpl{Type: "h2", NumArgs: 1},
-		&obtext.BasicTmpl{Type: "ul", AllowExtra: true},
-		&obtext.BasicTmpl{Type: "p", NumArgs: 1},
-		&obtext.BasicTmpl{Type: "bold", NumArgs: 1},
-		&obtext.BasicTmpl{Type: "image", CastArgsTo: []string{"", "string"}},
-		&obtext.BasicTmpl{Type: "code", CastArgsTo: []string{"string"}},
-	}
-
-	if err := obtext.ProcessSemantics(ast, allowedObjects); err != nil {
+	// Validate the AST (check each object has the correct number of arguments etc) from the semantics defined in semantics.go
+	if err := obtext.ProcessSemantics(ast, markDownSemantics); err != nil {
 		fmt.Println("Failed to validate input file:", err)
 		os.Exit(1)
 	}
