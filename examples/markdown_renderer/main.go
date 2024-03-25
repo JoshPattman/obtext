@@ -116,13 +116,13 @@ func generateMarkdown(t obtext.SemNode) string {
 		return "`" + generateMarkdown(t.Content) + "`"
 	case *obtext.UlSemNode:
 		out := "\n"
-		for _, e := range t.Content {
+		for _, e := range t.Contents {
 			out += " - " + generateMarkdown(e) + "\n"
 		}
 		return out
 	case *obtext.OlSemNode:
 		out := "\n"
-		for i, e := range t.Content {
+		for i, e := range t.Contents {
 			out += fmt.Sprintf(" %d. %s\n", i+1, generateMarkdown(e))
 		}
 		return out

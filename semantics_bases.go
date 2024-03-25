@@ -76,11 +76,11 @@ func (d *DualStringSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 // ListArgSemNode is a semantic node that has a list of children, each of which is a content block.
 // It only partially implements the SemNode interface, as it does not implement SyntaxType.
 type ListArgSemNode struct {
-	Content []*ContentBlockSemNode
+	Contents []*ContentBlockSemNode
 }
 
 // ParseArgs implements the SemNode interface.
 func (l *ListArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
-	l.Content = args
+	l.Contents = args
 	return nil
 }

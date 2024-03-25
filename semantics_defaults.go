@@ -15,6 +15,7 @@ var DefaultMarkupSemantics = []SemNode{
 	&InlineCodeSemNode{},
 	&UlSemNode{},
 	&OlSemNode{},
+	&LinkSemNode{},
 }
 
 // DocSemNode is a semantic node that represents a document.
@@ -134,4 +135,14 @@ type OlSemNode struct {
 // SyntaxType implements the SemNode interface.
 func (o *OlSemNode) SyntaxType() string {
 	return "ol"
+}
+
+// LinkSemNode is a semantic node that represents a link.
+type LinkSemNode struct {
+	CaptionedLinkSemNode
+}
+
+// SyntaxType implements the SemNode interface.
+func (l *LinkSemNode) SyntaxType() string {
+	return "ln"
 }
