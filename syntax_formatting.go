@@ -2,12 +2,12 @@ package obtext
 
 import "github.com/fatih/color"
 
-// FormatSyn returns a string representation of the object with nice indentation.
+// FormatSyn returns a string representation of the syntax tree object with nice indentation.
 func FormatSyn(o *ObjectSynNode) string {
 	return formatSyn(o, "", false)
 }
 
-// FormatSynWithAnsiiColors returns a string representation of the object with nice indentation and ansii colors.
+// FormatSynWithAnsiiColors returns a string representation of the syntax tree object with nice indentation and ansii colors.
 func FormatSynWithAnsiiColors(o *ObjectSynNode) string {
 	return formatSyn(o, "", true)
 }
@@ -28,7 +28,7 @@ func formatSyn(o *ObjectSynNode, indent string, withAnsiiColors bool) string {
 			case *ObjectSynNode:
 				out += formatSyn(e, indent+"  ", withAnsiiColors)
 			case *TextSynNode:
-				out += indent + "  |" + e.Value + "|\n"
+				out += indent + "  " + e.Value + "\n"
 			}
 		}
 		out += indent + conditionalColString("}\n", color.YellowString)

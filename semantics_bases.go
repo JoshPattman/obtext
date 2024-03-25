@@ -2,11 +2,14 @@ package obtext
 
 import "fmt"
 
-type SemSingleArgNode struct {
+// SingleArgSemNode is a semantic node that has exactly 1 child, which is a content block.
+// It only partially implements the SemNode interface, as it does not implement SyntaxType.
+type SingleArgSemNode struct {
 	Content *ContentBlockSemNode
 }
 
-func (d *SemSingleArgNode) ParseArgs(args []*ContentBlockSemNode) error {
+// ParseArgs implements the SemNode interface.
+func (d *SingleArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	if len(args) != 1 {
 		return fmt.Errorf("document must have exactly 1 child")
 	}
@@ -14,12 +17,16 @@ func (d *SemSingleArgNode) ParseArgs(args []*ContentBlockSemNode) error {
 	return nil
 }
 
-type SemCaptionedLinkNode struct {
+// CaptionedSemNode is a semantic node that has exactly 2 children, the first of which is a content block representing a caption,
+// and the second which is a string representing a URL.
+// It only partially implements the SemNode interface, as it does not implement SyntaxType.
+type CaptionedLinkSemNode struct {
 	CaptionContent *ContentBlockSemNode
 	Link           string
 }
 
-func (c *SemCaptionedLinkNode) ParseArgs(args []*ContentBlockSemNode) error {
+// ParseArgs implements the SemNode interface.
+func (c *CaptionedLinkSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	if len(args) != 2 {
 		return fmt.Errorf("link must have exactly 2 children")
 	}
@@ -35,11 +42,45 @@ func (c *SemCaptionedLinkNode) ParseArgs(args []*ContentBlockSemNode) error {
 	return nil
 }
 
-type SemListArgNode struct {
+// DualStringSemNode is a semantic node that has exactly 2 children, both of which are strings.
+// It only partially implements the SemNode interface, as it does not implement SyntaxType.
+type DualStringSemNode struct {
+	Arg1 string
+	Arg2 string
+}
+
+// ParseArgs implements the SemNode interface.
+func (d *DualStringSemNode) ParseArgs(args []*ContentBlockSemNode) error {
+	if len(args) != 2 {
+		return fmt.Errorf("dual string must have exactly 2 children")
+	}
+	if len(args[0].Elements) != 1 {
+		return fmt.Errorf("dual string arg1 must have exactly 1 child")
+	}
+	if len(args[1].Elements) != 1 {
+		return fmt.Errorf("dual string arg2 must have exactly 1 child")
+	}
+	arg1, ok := args[0].Elements[0].(*TextSemNode)
+	if !ok {
+		return fmt.Errorf("dual string arg1 must be text")
+	}
+	arg2, ok := args[1].Elements[0].(*TextSemNode)
+	if !ok {
+		return fmt.Errorf("dual string arg2 must be text")
+	}
+	d.Arg1 = arg1.Text
+	d.Arg2 = arg2.Text
+	return nil
+}
+
+// ListArgSemNode is a semantic node that has a list of children, each of which is a content block.
+// It only partially implements the SemNode interface, as it does not implement SyntaxType.
+type ListArgSemNode struct {
 	Content []*ContentBlockSemNode
 }
 
-func (l *SemListArgNode) ParseArgs(args []*ContentBlockSemNode) error {
+// ParseArgs implements the SemNode interface.
+func (l *ListArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
 	l.Content = args
 	return nil
 }

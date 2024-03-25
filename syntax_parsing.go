@@ -29,8 +29,8 @@ func ParseSynReader(data io.Reader) (*ObjectSynNode, error) {
 }
 
 // ParseSynBytes parses the given byte slice and returns the AST, or an error if the data is invalid.
-// This AST is not checked for semantics, only syntax.
-// This means that any object types are allowed, with any number of args, and any types in the args.
+// The resulting AST represents only they syntax, and should probably not be used directly.
+// Instead, you should call ParseSem on the result to parse the syntax tree into a semantics tree.
 func ParseSynBytes(data []byte) (*ObjectSynNode, error) {
 	// Initially, trim all whitespace from front and end (some editors add a newline at the end)
 	data = []byte(strings.Trim(string(data), " \r\n\t"))

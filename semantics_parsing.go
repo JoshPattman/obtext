@@ -5,6 +5,9 @@ import (
 	"reflect"
 )
 
+// ParseSem parses the given syntax tree and returns the semantics tree, or an error if the syntax tree is invalid.
+// It parses based on the given semantics, which is a list of all possible semantic nodes.
+// Each node contains information about what @<syntax-type> it should match, and how to parse its arguments.
 func ParseSem(node any, semantics []SemNode) (SemNode, error) {
 	semanticLookup := make(map[string]SemNode)
 	for _, o := range semantics {

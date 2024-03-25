@@ -46,6 +46,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Pretty print the AST if requested
+	if prettyPrint {
+		fmt.Println(obtext.FormatSynWithAnsiiColors(ast))
+	}
+
 	// Try to parse the syntax tree into a semantic tree (the semantics parsing step)
 	st, err := obtext.ParseSem(ast, obtext.DefaultMarkupSemantics)
 	if err != nil {
@@ -60,12 +65,18 @@ func main() {
 		os.Exit(1)
 	}
 	defer outputFile.Close()
+
+	// Generate the markdown from the semantic tree
 	md := generateMarkdown(st)
 	fmt.Fprint(outputFile, md)
 
+	// Success!
 	fmt.Println("Successfully wrote markdown to", outputFileName)
 }
 
+// generateMarkdown takes a semantic tree and generates a markdown string from it.
+// Rendering like this is deliberately left out of the obtext package, as it is intended to be done by the user of the package.
+// For example, I wrote a renderer for my personal blog that uses templ to render the semantic tree into HTML directly.
 func generateMarkdown(t obtext.SemNode) string {
 	switch t := t.(type) {
 	case *obtext.ContentBlockSemNode:
@@ -91,7 +102,7 @@ func generateMarkdown(t obtext.SemNode) string {
 	case *obtext.ImageSemNode:
 		return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.CaptionContent), t.Link)
 	case *obtext.EmbeddedCodeSemNode:
-		f, err := os.Open(t.Link)
+		f, err := os.Open(t.Arg2)
 		if err != nil {
 			return fmt.Sprintf("Failed to open file: %s", err)
 		}
@@ -100,7 +111,9 @@ func generateMarkdown(t obtext.SemNode) string {
 		if err != nil {
 			return fmt.Sprintf("Failed to read file: %s", err)
 		}
-		return fmt.Sprintf("```\n%s\n```\n", data)
+		return fmt.Sprintf("```%s\n%s\n```\n", t.Arg1, data)
+	case *obtext.InlineCodeSemNode:
+		return "`" + generateMarkdown(t.Content) + "`"
 	case *obtext.UlSemNode:
 		out := "\n"
 		for _, e := range t.Content {

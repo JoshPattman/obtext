@@ -8,28 +8,21 @@ type SynElement interface {
 func (ObjectSynNode) isSynElement() {}
 func (TextSynNode) isSynElement()   {}
 
-// ObjectSynNode is a named collection of arguments: @object_name{arg1}{arg2}...
+// ObjectSynNode is a syntax node representing an object: @object_name{arg1}{arg2}...
 type ObjectSynNode struct {
 	Type string
 	Args []*ArgSynNode
 }
 
-// ArgSynNode is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
+// ArgSynNode is a syntax node representing a list of elements.
+// Each element can be either an ObjectSynNode or TextSynNode.
 type ArgSynNode struct {
 	Elements []SynElement
 	// This may be nil, however during validation it is possible that this will get populated according to the validation constraints.
 	CastValue any
 }
 
-// TextSynNode is a simple text element that contains just raw text.
+// TextSynNode is a syntax node representing a text value.
 type TextSynNode struct {
 	Value string
-}
-
-func (o *ObjectSynNode) NumArgs() int {
-	return len(o.Args)
-}
-
-func (a *ArgSynNode) NumElements() int {
-	return len(a.Elements)
 }
