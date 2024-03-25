@@ -1,35 +1,35 @@
 package obtext
 
-// Element is either an Object or Text.
-type Element interface {
-	isElement()
+// SynElement is either an Object or Text.
+type SynElement interface {
+	isSynElement()
 }
 
-func (Object) isElement() {}
-func (Text) isElement()   {}
+func (ObjectSynNode) isSynElement() {}
+func (TextSynNode) isSynElement()   {}
 
-// Object is a named collection of arguments: @object_name{arg1}{arg2}...
-type Object struct {
+// ObjectSynNode is a named collection of arguments: @object_name{arg1}{arg2}...
+type ObjectSynNode struct {
 	Type string
-	Args []*Arg
+	Args []*ArgSynNode
 }
 
-// Arg is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
-type Arg struct {
-	Elements []Element
+// ArgSynNode is a collection of elements, these can be either blocks of text or other objects (or a mix of both).
+type ArgSynNode struct {
+	Elements []SynElement
 	// This may be nil, however during validation it is possible that this will get populated according to the validation constraints.
 	CastValue any
 }
 
-// Text is a simple text element that contains just raw text.
-type Text struct {
+// TextSynNode is a simple text element that contains just raw text.
+type TextSynNode struct {
 	Value string
 }
 
-func (o *Object) NumArgs() int {
+func (o *ObjectSynNode) NumArgs() int {
 	return len(o.Args)
 }
 
-func (a *Arg) NumElements() int {
+func (a *ArgSynNode) NumElements() int {
 	return len(a.Elements)
 }

@@ -39,22 +39,18 @@ func main() {
 	}
 	defer inputFile.Close()
 
-	// Try to parse the input file into an AST
-	ast, err := obtext.ParseReader(inputFile)
+	// Try to parse the input file into an AST (the syntax parsing step)
+	ast, err := obtext.ParseSynReader(inputFile)
 	if err != nil {
 		fmt.Println("Failed to parse input file:", err)
 		os.Exit(1)
 	}
 
-	// Validate the AST (check each object has the correct number of arguments etc) from the semantics defined in semantics.go
-	if err := obtext.ProcessSemantics(ast, markDownSemantics); err != nil {
-		fmt.Println("Failed to validate input file:", err)
+	// Try to parse the syntax tree into a semantic tree (the semantics parsing step)
+	st, err := obtext.ParseSem(ast, obtext.DefaultMarkupSemantics)
+	if err != nil {
+		fmt.Println("Failed to process semantics:", err)
 		os.Exit(1)
-	}
-
-	// Pretty print the AST to stdout if requested
-	if prettyPrint {
-		fmt.Println(obtext.FormatWithAnsiiColors(ast))
 	}
 
 	// Create the output file
@@ -64,63 +60,59 @@ func main() {
 		os.Exit(1)
 	}
 	defer outputFile.Close()
-
-	// Generate the markdown from the AST and write it to the output file
-	md := generateMarkdown(ast)
+	md := generateMarkdown(st)
 	fmt.Fprint(outputFile, md)
 
 	fmt.Println("Successfully wrote markdown to", outputFileName)
 }
 
-// generateMarkdown generates markdown from the given AST
-func generateMarkdown(t any) string {
+func generateMarkdown(t obtext.SemNode) string {
 	switch t := t.(type) {
-	case *obtext.Object:
-		// If this node is an object, choose what to do with it based on its type
-		switch t.Type {
-		case "document":
-			return generateMarkdown(t.Args[0])
-		case "h1":
-			return "\n# " + generateMarkdown(t.Args[0]) + "\n"
-		case "h2":
-			return "\n## " + generateMarkdown(t.Args[0]) + "\n"
-		case "p":
-			return "\n" + generateMarkdown(t.Args[0]) + "\n"
-		case "bold":
-			return "**" + generateMarkdown(t.Args[0]) + "**"
-		case "image":
-			return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.Args[0]), t.Args[1].CastValue.(string))
-		case "ul":
-			out := "\n"
-			for _, e := range t.Args {
-				out += " - " + generateMarkdown(e) + "\n"
-			}
-			return out
-		case "code":
-			f, err := os.Open(t.Args[0].CastValue.(string))
-			if err != nil {
-				return fmt.Sprintf("Failed to open file: %s", err)
-			}
-			defer f.Close()
-			data, err := io.ReadAll(f)
-			if err != nil {
-				return fmt.Sprintf("Failed to read file: %s", err)
-			}
-			return fmt.Sprintf("```\n%s\n```\n", data)
-		default:
-			panic("unknown object type")
-		}
-	case *obtext.Arg:
-		// If this node is an object argument, generate markdown for each element and append it together
+	case *obtext.ContentBlockSemNode:
 		out := ""
 		for _, e := range t.Elements {
 			out += generateMarkdown(e)
 		}
 		return out
-	case *obtext.Text:
-		// If this node is text, simply return the text value
-		return t.Value
-	default:
-		panic("unknown type")
+	case *obtext.TextSemNode:
+		return t.Text
+	case *obtext.DocSemNode:
+		return generateMarkdown(t.Content)
+	case *obtext.H1SemNode:
+		return "\n# " + generateMarkdown(t.Content) + "\n"
+	case *obtext.H2SemNode:
+		return "\n## " + generateMarkdown(t.Content) + "\n"
+	case *obtext.PSemNode:
+		return "\n" + generateMarkdown(t.Content) + "\n"
+	case *obtext.BoldSemNode:
+		return "**" + generateMarkdown(t.Content) + "**"
+	case *obtext.ItalicSemNode:
+		return "*" + generateMarkdown(t.Content) + "*"
+	case *obtext.ImageSemNode:
+		return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.CaptionContent), t.Link)
+	case *obtext.EmbeddedCodeSemNode:
+		f, err := os.Open(t.Link)
+		if err != nil {
+			return fmt.Sprintf("Failed to open file: %s", err)
+		}
+		defer f.Close()
+		data, err := io.ReadAll(f)
+		if err != nil {
+			return fmt.Sprintf("Failed to read file: %s", err)
+		}
+		return fmt.Sprintf("```\n%s\n```\n", data)
+	case *obtext.UlSemNode:
+		out := "\n"
+		for _, e := range t.Content {
+			out += " - " + generateMarkdown(e) + "\n"
+		}
+		return out
+	case *obtext.OlSemNode:
+		out := "\n"
+		for i, e := range t.Content {
+			out += fmt.Sprintf(" %d. %s\n", i+1, generateMarkdown(e))
+		}
+		return out
 	}
+	panic(fmt.Sprintf("node type %T was not included in renderer", t))
 }

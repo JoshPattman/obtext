@@ -14,24 +14,24 @@ var argRegexpEnd = regexp.MustCompile("}")
 
 var objRegexpName = regexp.MustCompile("@([a-zA-Z0-9_]+)")
 
-// ParseString is a convenience function that calls ParseBytes after converting the string to a byte slice
-func ParseString(data string) (*Object, error) {
-	return ParseBytes([]byte(data))
+// ParseSynString is a convenience function that calls ParseBytes after converting the string to a byte slice
+func ParseSynString(data string) (*ObjectSynNode, error) {
+	return ParseSynBytes([]byte(data))
 }
 
-// ParseReader is a convenience function that reads all data from the reader and then calls ParseBytes
-func ParseReader(data io.Reader) (*Object, error) {
+// ParseSynReader is a convenience function that reads all data from the reader and then calls ParseBytes
+func ParseSynReader(data io.Reader) (*ObjectSynNode, error) {
 	buf, err := io.ReadAll(data)
 	if err != nil {
 		return nil, err
 	}
-	return ParseBytes(buf)
+	return ParseSynBytes(buf)
 }
 
-// ParseBytes parses the given byte slice and returns the AST, or an error if the data is invalid.
+// ParseSynBytes parses the given byte slice and returns the AST, or an error if the data is invalid.
 // This AST is not checked for semantics, only syntax.
 // This means that any object types are allowed, with any number of args, and any types in the args.
-func ParseBytes(data []byte) (*Object, error) {
+func ParseSynBytes(data []byte) (*ObjectSynNode, error) {
 	// Initially, trim all whitespace from front and end (some editors add a newline at the end)
 	data = []byte(strings.Trim(string(data), " \r\n\t"))
 	// First, try to parse the messy ast
@@ -55,14 +55,14 @@ func ParseBytes(data []byte) (*Object, error) {
 
 func removeWhitespaceOnlyTextFromChildren(node any) {
 	switch n := node.(type) {
-	case *Object:
+	case *ObjectSynNode:
 		for _, arg := range n.Args {
 			removeWhitespaceOnlyTextFromChildren(arg)
 		}
-	case *Arg:
-		newChildren := make([]Element, 0, len(n.Elements))
+	case *ArgSynNode:
+		newChildren := make([]SynElement, 0, len(n.Elements))
 		for _, el := range n.Elements {
-			if txt, ok := el.(*Text); ok {
+			if txt, ok := el.(*TextSynNode); ok {
 				if strings.Trim(txt.Value, " \r\n\t") == "" {
 					continue
 				}
@@ -78,18 +78,18 @@ func removeWhitespaceOnlyTextFromChildren(node any) {
 
 func stripWhitespaceFromEndChildren(node any) {
 	switch n := node.(type) {
-	case *Object:
+	case *ObjectSynNode:
 		for _, arg := range n.Args {
 			stripWhitespaceFromEndChildren(arg)
 		}
-	case *Arg:
+	case *ArgSynNode:
 		if len(n.Elements) == 0 {
 			return
 		}
-		if txt, ok := n.Elements[0].(*Text); ok {
+		if txt, ok := n.Elements[0].(*TextSynNode); ok {
 			txt.Value = strings.TrimLeft(txt.Value, " \r\n\t")
 		}
-		if txt, ok := n.Elements[len(n.Elements)-1].(*Text); ok {
+		if txt, ok := n.Elements[len(n.Elements)-1].(*TextSynNode); ok {
 			txt.Value = strings.TrimRight(txt.Value, " \r\n\t")
 		}
 		for _, el := range n.Elements {
@@ -100,15 +100,15 @@ func stripWhitespaceFromEndChildren(node any) {
 
 func cleanupEscapedSpecialChars(node any) {
 	switch n := node.(type) {
-	case *Object:
+	case *ObjectSynNode:
 		for _, arg := range n.Args {
 			cleanupEscapedSpecialChars(arg)
 		}
-	case *Arg:
+	case *ArgSynNode:
 		for _, el := range n.Elements {
 			cleanupEscapedSpecialChars(el)
 		}
-	case *Text:
+	case *TextSynNode:
 		n.Value = strings.ReplaceAll(n.Value, "\\@", "@")
 		n.Value = strings.ReplaceAll(n.Value, "\\}", "}")
 		n.Value = strings.ReplaceAll(n.Value, "\\{", "{")
@@ -132,28 +132,28 @@ func consume(reg *regexp.Regexp, data []byte) (bool, []string, []byte) {
 	return true, groups, data[locs[1]:]
 }
 
-func tryParseText(data []byte) (*Text, []byte) {
+func tryParseText(data []byte) (*TextSynNode, []byte) {
 	parsed, groups, remaining := consume(textRegexp, data)
 	if !parsed {
 		return nil, nil
 	}
-	return &Text{groups[0]}, remaining
+	return &TextSynNode{groups[0]}, remaining
 }
 
-func tryParseArg(data []byte) (*Arg, []byte) {
+func tryParseArg(data []byte) (*ArgSynNode, []byte) {
 	// Parse some whitespace then a open bracket
 	parsed, _, remaining := consume(argRegexpStart, data)
 	if !parsed {
 		return nil, nil
 	}
 	data = remaining
-	elements := make([]Element, 0)
+	elements := make([]SynElement, 0)
 	for {
 		// First try to parse an ending bracket
 		parsed, _, remaining = consume(argRegexpEnd, data)
 		if parsed {
 			// sucsess! return the object arg
-			oa := &Arg{Elements: elements}
+			oa := &ArgSynNode{Elements: elements}
 			return oa, remaining
 		}
 		// Now try to parse a new object
@@ -177,7 +177,7 @@ func tryParseArg(data []byte) (*Arg, []byte) {
 	}
 }
 
-func tryParseObject(data []byte) (*Object, []byte) {
+func tryParseObject(data []byte) (*ObjectSynNode, []byte) {
 	// Try to parse @obj_type
 	parsed, groups, remaining := consume(objRegexpName, data)
 	if !parsed {
@@ -185,7 +185,7 @@ func tryParseObject(data []byte) (*Object, []byte) {
 	}
 	objType := groups[1]
 	data = remaining
-	args := make([]*Arg, 0)
+	args := make([]*ArgSynNode, 0)
 	// Parse all remaining args. An arg can be preceded by whitespace (this is dealt with in the arg parser)
 	for {
 		arg, remaining := tryParseArg(data)
@@ -195,7 +195,7 @@ func tryParseObject(data []byte) (*Object, []byte) {
 		args = append(args, arg)
 		data = remaining
 	}
-	return &Object{
+	return &ObjectSynNode{
 		Type: objType,
 		Args: args,
 	}, data

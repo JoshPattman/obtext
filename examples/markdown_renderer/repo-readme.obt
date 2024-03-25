@@ -1,4 +1,4 @@
-@document
+@doc
 {
 	@h1{ Objective Text - A Dead Simple Markup Language }
 	@p{ 
@@ -11,7 +11,7 @@
 	@p {
 		Here's an example of how you might use Objective Text to structure a blog page:
 	}
-	@code{obt-example.obt}
+	@code{caption for this code}{obt-example.obt}
 
 
 	@h2 {Understanding Objects}
