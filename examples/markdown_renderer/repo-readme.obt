@@ -1,33 +1,44 @@
 @doc {
+	@img {icon}{./icon.png}
 	@section{ Objective Text - A Dead Simple Markup Language }{
-		@para{ 
-			Objective Text is a minimalist markup language designed for blog writing, designed by blending @icode{html} and @icode{latex}. Its key feature is its simplicity, with a grammar that consists of only three elements:
-		}
-		@itemize
-			{Objects: Denoted by @icode{\@object_name}}
-			{Arguments: Enclosed in @icode{\{argument text and objects\}}}
-			{Text: Can be any string of characters}
-		@para {
-			Here's an example of how you might use Objective Text to structure a blog page:
-		}
-		@code{obt}{res/obt-example.obt}
-
-		@para {
-			For a more detailed example, take a look at @icode{examples/markdown_renderer} example. It shows how you can convert from objective text to markdown, and was actually used to generate this README!
+		@para{
+			Objective Text is a minimalist markup language designed for blog writing, designed by blending @icode{html} and @icode{latex}.
 		}
 
-
-		@subsection {Understanding Objects} {
+		@subsection{About}{
+			@para{ 
+				The key features of Obtext are its extensibility and simplicity, with a grammar that consists of only three elements:
+				@itemize
+					{Objects: Denoted by @icode{\@object_name}}
+					{Arguments: Enclosed in @icode{\{argument text and objects\}}}
+					{Text: Can be any string of characters}
+			}
 			@para {
 				Objects are the fundamental building blocks of Objective Text. They're identified by an \@ symbol followed by the object name (e.g. \@header). Each object is followed by one or more argument blocks, enclosed in \{\}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.
 			}
 			@para {
-				One of the unique features of Objective Text is its flexibility. During the syntax parsing step, the parser will accept any object with any @icode{\@<object type>}, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. Obtext comes with a set of default semantic rules for mark up purposes, @icode{markup.Semantics}, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.
+				During the syntax parsing step, the parser will accept any object with any @icode{\@<object type>}, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. Obtext comes with a set of default semantic rules for mark up purposes, @icode{markup.Semantics}, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.
 			}
 		}
 
-		@subsection { Usage } {
-			@code {go} {./res/go-example.go}
+		@subsection {Syntax Example} {
+			@para {
+				Here's an example of how you might use Objective Text to structure a blog page, using the default rules in the subpackage @icode{markup}:
+			}
+			@code{obt}{res/obt-example.obt}
+
+			@para {
+				For a more detailed example, take a look at both the @icode{examples/markdown_renderer} example, and the renderers provided in @icode{markup}. These tools were actually used to generate this README!
+			}
+		}
+
+		@subsection { What Does This Package Contain? } {
+			@para {
+				Obtext is not provided with a single binary or program to perform conversion to other formats (for example obtext to markdown converter). It is instead intended to be used within other go programs such as a wesite which renders HTML on the fly. For this reason, obtext is provided as a package with parsing functionality that should be called from your specific program.
+			}
+			@para{
+				It is extremely easy to add custom objects to the obtext parsing pipeline. To do this, you must first construct a struct that extends the @icode{SemNode} interface. You can either implement all of the methods by hand for this, or you can compose using one of the types defined in @icode{semantics_bases.go} which almost entirely implement a set of common behaviours. You can then pass your struct either in place of, or addition to the other SymNode types present in @icode{markup.Semantics}. Finally, you can add support of your struct to your rendering method. If you are using one of the built-in renderers, you must copy the source code and modify it as you wish. This is done to keep the package as simple and robust as possible, as it is expected that most use-cases of this package will include a custom renderer.
+			}
 		}
 	}
 }
