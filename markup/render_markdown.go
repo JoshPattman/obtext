@@ -8,6 +8,10 @@ import (
 	"github.com/JoshPattman/obtext"
 )
 
+// The markdown renderer by default uses html image tag to render images, allowing for centering and size control.
+// However, this may not be supported in all markdown renderers, so you can set this to false to use the standard markdown image syntax.
+var UseHTMLImageRendering = true
+
 // RenderMarkdown takes a semantic tree using nodes from the markup package and generates a markdown string from it.
 // To customise the markdown rendering, you can create a copy of this function in your codebase - its only small.
 func RenderMarkdown(t obtext.SemNode) string {
@@ -33,7 +37,11 @@ func RenderMarkdown(t obtext.SemNode) string {
 	case *ItalicSemNode:
 		return "*" + RenderMarkdown(t.Content) + "*"
 	case *ImageSemNode:
-		return fmt.Sprintf("\n![%s](%s)\n", RenderMarkdown(t.CaptionContent), t.Link)
+		if UseHTMLImageRendering {
+			return fmt.Sprintf("\n<div style=\"text-align:center\"><img alt=\"%s\" src=\"%s\" width=50%%/></div>\n", RenderHTML(t.CaptionContent, ""), t.Link)
+		} else {
+			return fmt.Sprintf("\n![%s](%s)\n", RenderMarkdown(t.CaptionContent), t.Link)
+		}
 	case *EmbeddedCodeSemNode:
 		f, err := os.Open(t.Arg2)
 		if err != nil {

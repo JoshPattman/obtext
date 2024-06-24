@@ -1,5 +1,5 @@
 
-![icon](./icon.png)
+<div style="text-align:center"><img alt="icon" src="./icon.png" width=50%/></div>
 
 # Objective Text - A Dead Simple Markup Language
 
@@ -14,7 +14,7 @@ The key features of **obtext** are its extensibility and simplicity, with a gram
  - Text: Can be any string of characters
 
 
-Objects are the fundamental building blocks of Objective Text. They're identified by an @ symbol followed by the object name (e.g. @header). Each object is followed by one or more argument blocks, enclosed in {}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.
+Objects are the fundamental building blocks of Objective Text. They're identified by an @ symbol followed by the object name (e.g. `@header`). Each object is followed by one or more argument blocks, enclosed in {}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.
 
 During the syntax parsing step, the parser will accept any object with any `@<object type>`, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. **obtext** comes with a set of default semantic rules for mark up purposes, `markup.Semantics`, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.
 
