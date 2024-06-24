@@ -3,11 +3,11 @@
 
 <h1>Objective Text - A Dead Simple Markup Language</h1>
 
-	<p>Objective Text is a minimalist markup language designed for blog writing, designed by blending <code>html</code> and <code>latex</code>.</p>
+	<p>Objective Text (<b>obtext</b>) is a minimalist markup language designed for blog writing.</p>
 
 	<h2>About</h2>
 
-		<p>The key features of Obtext are its extensibility and simplicity, with a grammar that consists of only three elements:
+		<p>The key features of <b>obtext</b> are its extensibility and simplicity, with a grammar that consists of only three elements:
 				
 <ul>
 	<li>Objects: Denoted by <code>@object_name</code></li>
@@ -17,7 +17,7 @@
 
 		<p>Objects are the fundamental building blocks of Objective Text. They're identified by an @ symbol followed by the object name (e.g. @header). Each object is followed by one or more argument blocks, enclosed in {}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.</p>
 
-		<p>During the syntax parsing step, the parser will accept any object with any <code>@<object type></code>, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. Obtext comes with a set of default semantic rules for mark up purposes, <code>markup.Semantics</code>, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.</p>
+		<p>During the syntax parsing step, the parser will accept any object with any <code>@<object type></code>, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. <b>obtext</b> comes with a set of default semantic rules for mark up purposes, <code>markup.Semantics</code>, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.</p>
 
 	<h2>Syntax Example</h2>
 
@@ -36,6 +36,6 @@
 
 	<h2>What Does This Package Contain?</h2>
 
-		<p>Obtext is not provided with a single binary or program to perform conversion to other formats (for example obtext to markdown converter). It is instead intended to be used within other go programs such as a wesite which renders HTML on the fly. For this reason, obtext is provided as a package with parsing functionality that should be called from your specific program.</p>
+		<p><b>obtext</b> is not provided with a single binary or program to perform conversion to other formats (for example <b>obtext</b> to markdown converter). It is instead intended to be used within other go programs such as a wesite which renders HTML on the fly. For this reason, <b>obtext</b> is provided as a package with parsing functionality that should be called from your specific program.</p>
 
-		<p>It is extremely easy to add custom objects to the obtext parsing pipeline. To do this, you must first construct a struct that extends the <code>SemNode</code> interface. You can either implement all of the methods by hand for this, or you can compose using one of the types defined in <code>semantics_bases.go</code> which almost entirely implement a set of common behaviours. You can then pass your struct either in place of, or addition to the other SymNode types present in <code>markup.Semantics</code>. Finally, you can add support of your struct to your rendering method. If you are using one of the built-in renderers, you must copy the source code and modify it as you wish. This is done to keep the package as simple and robust as possible, as it is expected that most use-cases of this package will include a custom renderer.</p>
+		<p>It is extremely easy to add custom objects to the <b>obtext</b> parsing pipeline. To do this, you must first construct a struct that extends the <code>SemNode</code> interface. You can either implement all of the methods by hand for this, or you can compose using one of the types defined in <code>semantics_bases.go</code> which almost entirely implement a set of common behaviours. You can then pass your struct either in place of, or addition to the other SymNode types present in <code>markup.Semantics</code>. Finally, you can add support of your struct to your rendering method. If you are using one of the built-in renderers, you must copy the source code and modify it as you wish. This is done to keep the package as simple and robust as possible, as it is expected that most use-cases of this package will include a custom renderer.</p>
