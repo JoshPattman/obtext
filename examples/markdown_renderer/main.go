@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -15,11 +14,14 @@ func main() {
 	// Specify the command line args and parse them
 	var inputFileName string
 	var outputFileName string
+	var secondaryOutputFileName string
 	var prettyPrint bool
+	var generateHtml bool
 
 	flag.StringVar(&inputFileName, "i", "", "The input file (.obt) to read")
 	flag.StringVar(&outputFileName, "o", "", "The output file (.md) to write")
 	flag.BoolVar(&prettyPrint, "p", false, "Pretty print the parsed obt ast to output")
+	flag.BoolVar(&generateHtml, "h", false, "Generate an html file as well as a markdown file")
 
 	flag.Parse()
 
@@ -31,6 +33,8 @@ func main() {
 	if outputFileName == "" {
 		outputFileName = strings.TrimSuffix(inputFileName, ".obt") + ".md"
 	}
+
+	secondaryOutputFileName = strings.TrimSuffix(outputFileName, ".md") + ".html"
 
 	// Read the content of the input file
 	inputFile, err := os.Open(inputFileName)
@@ -68,65 +72,27 @@ func main() {
 	defer outputFile.Close()
 
 	// Generate the markdown from the semantic tree
-	md := generateMarkdown(st)
+	md := markup.RenderMarkdown(st)
 	fmt.Fprint(outputFile, md)
 
 	// Success!
 	fmt.Println("Successfully wrote markdown to", outputFileName)
-}
 
-// generateMarkdown takes a semantic tree and generates a markdown string from it.
-// Rendering like this is deliberately left out of the obtext package, as it is intended to be done by the user of the package.
-// For example, I wrote a renderer for my personal blog that uses templ to render the semantic tree into HTML directly.
-func generateMarkdown(t obtext.SemNode) string {
-	switch t := t.(type) {
-	case *obtext.ContentBlockSemNode:
-		out := ""
-		for _, e := range t.Elements {
-			out += generateMarkdown(e)
-		}
-		return out
-	case *obtext.TextSemNode:
-		return t.Text
-	case *markup.DocSemNode:
-		return generateMarkdown(t.Content)
-	case *markup.SectionSemNode:
-		return "\n# " + generateMarkdown(t.Arg1) + "\n" + generateMarkdown(t.Arg2)
-	case *markup.SubSectionSemNode:
-		return "\n## " + generateMarkdown(t.Arg1) + "\n" + generateMarkdown(t.Arg2)
-	case *markup.PSemNode:
-		return "\n" + generateMarkdown(t.Content) + "\n"
-	case *markup.BoldSemNode:
-		return "**" + generateMarkdown(t.Content) + "**"
-	case *markup.ItalicSemNode:
-		return "*" + generateMarkdown(t.Content) + "*"
-	case *markup.ImageSemNode:
-		return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.CaptionContent), t.Link)
-	case *markup.EmbeddedCodeSemNode:
-		f, err := os.Open(t.Arg2)
+	// Generate the html file if requested
+	if generateHtml {
+		// Create the output file
+		htmlOutputFile, err := os.Create(secondaryOutputFileName)
 		if err != nil {
-			return fmt.Sprintf("Failed to open file: %s", err)
+			fmt.Println("Failed to create output file:", err)
+			os.Exit(1)
 		}
-		defer f.Close()
-		data, err := io.ReadAll(f)
-		if err != nil {
-			return fmt.Sprintf("Failed to read file: %s", err)
-		}
-		return fmt.Sprintf("```%s\n%s\n```\n", t.Arg1, data)
-	case *markup.InlineCodeSemNode:
-		return "`" + generateMarkdown(t.Content) + "`"
-	case *markup.UlSemNode:
-		out := "\n"
-		for _, e := range t.Contents {
-			out += " - " + generateMarkdown(e) + "\n"
-		}
-		return out
-	case *markup.OlSemNode:
-		out := "\n"
-		for i, e := range t.Contents {
-			out += fmt.Sprintf(" %d. %s\n", i+1, generateMarkdown(e))
-		}
-		return out
+		defer htmlOutputFile.Close()
+
+		// Generate the html from the semantic tree
+		html := markup.RenderHTML(st, "")
+		fmt.Fprint(htmlOutputFile, html)
+
+		// Success!
+		fmt.Println("Successfully wrote html to", secondaryOutputFileName)
 	}
-	panic(fmt.Sprintf("node type %T was not included in renderer", t))
 }
