@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/JoshPattman/obtext"
+	"github.com/JoshPattman/obtext/markup"
 )
 
 func main() {
@@ -18,8 +19,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// Parse the semantics tree according to the rules set in obtext.DefaultMarkupSemantics
-	semanticsTree, err := obtext.ParseSem(syntaxTree, obtext.DefaultMarkupSemantics)
+	// Parse the semantics tree according to the rules set in markup.Semantics
+	semanticsTree, err := obtext.ParseSem(syntaxTree, markup.Semantics)
 	if err != nil {
 		panic(err)
 	}

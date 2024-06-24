@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/JoshPattman/obtext"
+	"github.com/JoshPattman/obtext/markup"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 	}
 
 	// Try to parse the syntax tree into a semantic tree (the semantics parsing step)
-	st, err := obtext.ParseSem(ast, obtext.DefaultMarkupSemantics)
+	st, err := obtext.ParseSem(ast, markup.Semantics)
 	if err != nil {
 		fmt.Println("Failed to process semantics:", err)
 		os.Exit(1)
@@ -87,21 +88,21 @@ func generateMarkdown(t obtext.SemNode) string {
 		return out
 	case *obtext.TextSemNode:
 		return t.Text
-	case *obtext.DocSemNode:
+	case *markup.DocSemNode:
 		return generateMarkdown(t.Content)
-	case *obtext.H1SemNode:
-		return "\n# " + generateMarkdown(t.Content) + "\n"
-	case *obtext.H2SemNode:
-		return "\n## " + generateMarkdown(t.Content) + "\n"
-	case *obtext.PSemNode:
+	case *markup.SectionSemNode:
+		return "\n# " + generateMarkdown(t.Arg1) + "\n" + generateMarkdown(t.Arg2)
+	case *markup.SubSectionSemNode:
+		return "\n## " + generateMarkdown(t.Arg1) + "\n" + generateMarkdown(t.Arg2)
+	case *markup.PSemNode:
 		return "\n" + generateMarkdown(t.Content) + "\n"
-	case *obtext.BoldSemNode:
+	case *markup.BoldSemNode:
 		return "**" + generateMarkdown(t.Content) + "**"
-	case *obtext.ItalicSemNode:
+	case *markup.ItalicSemNode:
 		return "*" + generateMarkdown(t.Content) + "*"
-	case *obtext.ImageSemNode:
+	case *markup.ImageSemNode:
 		return fmt.Sprintf("\n![%s](%s)\n", generateMarkdown(t.CaptionContent), t.Link)
-	case *obtext.EmbeddedCodeSemNode:
+	case *markup.EmbeddedCodeSemNode:
 		f, err := os.Open(t.Arg2)
 		if err != nil {
 			return fmt.Sprintf("Failed to open file: %s", err)
@@ -112,15 +113,15 @@ func generateMarkdown(t obtext.SemNode) string {
 			return fmt.Sprintf("Failed to read file: %s", err)
 		}
 		return fmt.Sprintf("```%s\n%s\n```\n", t.Arg1, data)
-	case *obtext.InlineCodeSemNode:
+	case *markup.InlineCodeSemNode:
 		return "`" + generateMarkdown(t.Content) + "`"
-	case *obtext.UlSemNode:
+	case *markup.UlSemNode:
 		out := "\n"
 		for _, e := range t.Contents {
 			out += " - " + generateMarkdown(e) + "\n"
 		}
 		return out
-	case *obtext.OlSemNode:
+	case *markup.OlSemNode:
 		out := "\n"
 		for i, e := range t.Contents {
 			out += fmt.Sprintf(" %d. %s\n", i+1, generateMarkdown(e))

@@ -24,7 +24,7 @@ For a more detailed example, take a look at `examples/markdown_renderer` example
 
 Objects are the fundamental building blocks of Objective Text. They're identified by an @ symbol followed by the object name (e.g. @header). Each object is followed by one or more argument blocks, enclosed in {}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.
 
-One of the unique features of Objective Text is its flexibility. During the syntax parsing step, the parser will accept any object with any `@<object type>`, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. Obtext comes with a set of default semantic rules for mark up purposes, `DefaultMarkupSemantics`, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.
+One of the unique features of Objective Text is its flexibility. During the syntax parsing step, the parser will accept any object with any `@<object type>`, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. Obtext comes with a set of default semantic rules for mark up purposes, `markup.Semantics`, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.
 
 ## Usage
 ```go
@@ -34,6 +34,7 @@ import (
 	"os"
 
 	"github.com/JoshPattman/obtext"
+	"github.com/JoshPattman/obtext/markup"
 )
 
 func main() {
@@ -48,8 +49,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// Parse the semantics tree according to the rules set in obtext.DefaultMarkupSemantics
-	semanticsTree, err := obtext.ParseSem(syntaxTree, obtext.DefaultMarkupSemantics)
+	// Parse the semantics tree according to the rules set in markup.Semantics
+	semanticsTree, err := obtext.ParseSem(syntaxTree, markup.Semantics)
 	if err != nil {
 		panic(err)
 	}

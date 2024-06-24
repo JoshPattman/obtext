@@ -110,3 +110,24 @@ func (l *ListArgSemNode) Children() []SemNode {
 	}
 	return res
 }
+
+// DualArgSemNode is a semantic node that has exactly 2 children, both of which are futher content.
+type DualArgSemNode struct {
+	Arg1 *ContentBlockSemNode
+	Arg2 *ContentBlockSemNode
+}
+
+// ParseArgs implements the SemNode interface.
+func (d *DualArgSemNode) ParseArgs(args []*ContentBlockSemNode) error {
+	if len(args) != 2 {
+		return fmt.Errorf("dual arg must have exactly 2 children")
+	}
+	d.Arg1 = args[0]
+	d.Arg2 = args[1]
+	return nil
+}
+
+// Children implements the SemNode interface.
+func (d *DualArgSemNode) Children() []SemNode {
+	return []SemNode{d.Arg1, d.Arg2}
+}
