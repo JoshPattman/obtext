@@ -33,7 +33,7 @@ func RenderHTML(t obtext.SemNode, indent string) string {
 	case *ItalicSemNode:
 		return "<i>" + RenderHTML(t.Content, "") + "</i>"
 	case *ImageSemNode:
-		return "\n" + indent + fmt.Sprintf("<div style=\"text-align:center\"><img alt=\"%s\" src=\"%s\" width=50%%/></div>\n", RenderHTML(t.CaptionContent, ""), t.Link)
+		return "\n" + indent + fmt.Sprintf("<img alt=\"%s\" src=\"%s\" width=50%% align=\"center\"/>\n", RenderHTML(t.CaptionContent, ""), t.Link)
 	case *EmbeddedCodeSemNode:
 		f, err := os.Open(t.Arg2)
 		if err != nil {

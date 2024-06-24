@@ -1,5 +1,5 @@
 
-<div style="text-align:center"><img alt="icon" src="./icon.png" width=50%/></div>
+<img alt="icon" src="./icon.png" width=50% align="center"/>
 
 # Objective Text - A Dead Simple Markup Language
 

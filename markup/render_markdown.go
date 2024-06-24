@@ -38,7 +38,7 @@ func RenderMarkdown(t obtext.SemNode) string {
 		return "*" + RenderMarkdown(t.Content) + "*"
 	case *ImageSemNode:
 		if UseHTMLImageRendering {
-			return fmt.Sprintf("\n<div style=\"text-align:center\"><img alt=\"%s\" src=\"%s\" width=50%%/></div>\n", RenderHTML(t.CaptionContent, ""), t.Link)
+			return fmt.Sprintf("\n<img alt=\"%s\" src=\"%s\" width=50%% align=\"center\"/>\n", RenderHTML(t.CaptionContent, ""), t.Link)
 		} else {
 			return fmt.Sprintf("\n![%s](%s)\n", RenderMarkdown(t.CaptionContent), t.Link)
 		}
