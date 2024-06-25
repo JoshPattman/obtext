@@ -1,7 +1,8 @@
 @doc {
-    @h1 { Section 1: Why ObText Is The Best}
-    @p {
-        ObText is the best because it is the @b{best}.
+    @section{ Section 1: Why ObText Is The Best}{
+        @para {
+            ObText is the best because it is the @bold{best}.
+        }
+        @img {A picture of ObText being the best} {path/to/img.png}
     }
-    @img {A picture of ObText being the best} {path/to/img.png}
 }

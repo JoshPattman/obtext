@@ -1,0 +1,45 @@
+
+<img alt="icon" src="./icon.png" width=50% align="center"/>
+
+<h1>Objective Text - A Dead Simple Markup Language</h1>
+
+	<p>Objective Text (<b>obtext</b>) is a minimalist markup language designed for blog writing.</p>
+
+	<h2>About</h2>
+
+		<p>The key features of <b>obtext</b> are its extensibility and simplicity, with a grammar that consists of only three elements:
+				
+<ul>
+	<li>Objects: Denoted by <code>@object_name</code></li>
+	<li>Arguments: Enclosed in <code>{argument text and objects}</code></li>
+	<li>Text: Can be any string of characters</li>
+</ul></p>
+
+		<p>Objects are the fundamental building blocks of Objective Text. They're identified by an @ symbol followed by the object name (e.g. <code>@header</code>). Each object is followed by one or more argument blocks, enclosed in {}. Whitespace around these blocks is flexible for readability, and leading and trailing whitespace within argument blocks is automatically removed.</p>
+
+		<p>During the syntax parsing step, the parser will accept any object with any <code>@<object type></code>, and any number of arguments. However, during the step of converting they syntax tree to a semantic tree, the parser will check if each object is valid given the rules that you give it. <b>obtext</b> comes with a set of default semantic rules for mark up purposes, <code>markup.Semantics</code>, but you can easily either modify them, or create your own from scratch. This means that it is trivial to create custom objects, such as an image gallery or a table of contents.</p>
+
+	<h2>Syntax Example</h2>
+
+		<p>Here's an example of how you might use Objective Text to structure a blog page, using the default rules in the subpackage <code>markup</code>:</p>
+
+<pre><code>@doc {
+    @section{ Section 1: Why ObText Is The Best}{
+        @para {
+            ObText is the best because it is the @bold{best}.
+        }
+        @img {A picture of ObText being the best} {path/to/img.png}
+    }
+}</code></pre>
+
+		<p>For a more detailed example, take a look at both the <code>examples/markdown_renderer</code> example, and the renderers provided in <code>markup</code>. These tools were actually used to generate this README!</p>
+
+	<h2>What Does This Package Contain?</h2>
+
+		<p><b>obtext</b> is not provided with a single binary or program to perform conversion to other formats (for example <b>obtext</b> to markdown converter). It is instead intended to be used within other go programs such as a wesite which renders HTML on the fly. For this reason, <b>obtext</b> is provided as a package with parsing functionality that should be called from your specific program.</p>
+
+		<p>It is extremely easy to add custom objects to the <b>obtext</b> parsing pipeline. To do this, you must first construct a struct that extends the <code>SemNode</code> interface. You can either implement all of the methods by hand for this, or you can compose using one of the types defined in <code>semantics_bases.go</code> which almost entirely implement a set of common behaviours. You can then pass your struct either in place of, or addition to the other SymNode types present in <code>markup.Semantics</code>. Finally, you can add support of your struct to your rendering method. If you are using one of the built-in renderers, you must copy the source code and modify it as you wish. This is done to keep the package as simple and robust as possible, as it is expected that most use-cases of this package will include a custom renderer.</p>
+
+	<h2>Why Not Just Use Markdown?</h2>
+
+		<p>I built <b>obtext</b> for writing the content on my personal website. I initially tried to squeeze custom features into markdown with a few different methods, but using the franken-markdown was not very enjoyable or simple. I did not want to use latex as I felt it was huge overkill for my usage, as it focusses on creating entire documents as opposed to just the main content area of a webpage. To be fair, just writing HTML would not have been such a bad choice, but I personally prefer the syntax of <b>obtext</b> for content creation. I also find it much easier to exted <b>obtext</b> with custom features like image galleries.</p>
