@@ -40,5 +40,11 @@
 				It is extremely easy to add custom objects to the @bold{obtext} parsing pipeline. To do this, you must first construct a struct that extends the @icode{SemNode} interface. You can either implement all of the methods by hand for this, or you can compose using one of the types defined in @icode{semantics_bases.go} which almost entirely implement a set of common behaviours. You can then pass your struct either in place of, or addition to the other SymNode types present in @icode{markup.Semantics}. Finally, you can add support of your struct to your rendering method. If you are using one of the built-in renderers, you must copy the source code and modify it as you wish. This is done to keep the package as simple and robust as possible, as it is expected that most use-cases of this package will include a custom renderer.
 			}
 		}
+
+		@subsection { Why Not Just Use Markdown? } {
+			@para {
+				I built @bold{obtext} for writing the content on my personal website. I initially tried to squeeze custom features into markdown with a few different methods, but using the franken-markdown was not very enjoyable or simple. I did not want to use latex as I felt it was huge overkill for my usage, as it focusses on creating entire documents as opposed to just the main content area of a webpage. To be fair, just writing HTML would not have been such a bad choice, but I personally prefer the syntax of @bold{obtext} for content creation. I also find it much easier to exted @bold{obtext} with custom features like image galleries.
+			}
+		}
 	}
 }
